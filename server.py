@@ -1,5 +1,3 @@
-
-
 from ibm_watson_machine_learning.foundation_models.utils.enums import ModelTypes
 from ibm_watson_machine_learning.foundation_models import Model
 from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams
@@ -104,6 +102,8 @@ class ChromaWithUpsert:
         """
         return self._collection.query(query_texts=query_texts, n_results=n_results)
 
+emb_func = MiniLML6V2EmbeddingFunction()
+chroma = ChromaWithUpsert(name=f"nq910_minilm6v2", embedding_function=emb_func,)
 
 def make_prompt(context, question_text):
     return (f"Please answer the following.\n"
@@ -130,8 +130,6 @@ def create_model():
 
 def get_relevant_embeddings(question_texts):
     relevant_contexts = []
-    emb_func = MiniLML6V2EmbeddingFunction()
-    chroma = ChromaWithUpsert(name=f"nq910_minilm6v2", embedding_function=emb_func,)
     for question_text in question_texts:
         relevant_chunks = chroma.query(
             query_texts=[question_text],
@@ -166,4 +164,4 @@ def query_bot(query: Query = Body(...)) -> dict:
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=80)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
