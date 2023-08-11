@@ -1,0 +1,4 @@
+nltk==3.8.1
+sentence_transformers
+chromadb==0.3.27
+ibm-watson-machine-learning>=1.0.312
