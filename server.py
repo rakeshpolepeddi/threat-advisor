@@ -163,13 +163,14 @@ class Query(BaseModel):
     query: str = Field(...)
 
 class QueryResponse(BaseModel):
-    response: list[str] = Field(...)
+    response: str = Field(...)
 
 
 @app.post("/chat/", response_model=QueryResponse)
 def query_bot(query: Query = Body(...)) -> dict:
     req = [query.dict()['query']]
     resp = get_answers(req)
+    resp = ''.join(resp)
     return {'response': resp}
 
 
