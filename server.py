@@ -38,9 +38,6 @@ class MiniLML6V2EmbeddingFunction(EmbeddingFunction):
 data_root = "data"
 knowledge_base_dir = f"{data_root}/knowledge_base"
 
-object_key = 'Vulners-3000.xlsx'
-df = pd.read_excel(object_key)
-
 class ChromaWithUpsert:
     def __init__(
             self,
@@ -112,16 +109,6 @@ emb_func = MiniLML6V2EmbeddingFunction()
 chroma = ChromaWithUpsert(name=f"nq910_minilm6v211", embedding_function=emb_func,)
 
 
-def insert_data():
-
-    df['indextext'] = df['title'].astype(str) + "\n" + df['description']
-    if chroma.is_empty():
-        _ = chroma.upsert_texts(
-            texts=df.indextext.tolist(),
-            metadata=[{'title': title} for title in df.title], ids=None,)
-        chroma.persist()
-
-#insert_data()
 
 def make_prompt(context, question_text):
     return (f"Please answer the following.\n"
