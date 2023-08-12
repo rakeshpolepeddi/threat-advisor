@@ -10,6 +10,7 @@ from fastapi import FastAPI, Body
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 import json, uvicorn
+import pandas as pd
 
 model_id = ModelTypes.FLAN_UL2
 api_key = 'V_cAKE4oOEUjejf352EZCsNJa-rF_FGDcfVzTYEwtzFg'
@@ -34,12 +35,17 @@ class MiniLML6V2EmbeddingFunction(EmbeddingFunction):
     def __call__(self, texts):
         return MiniLML6V2EmbeddingFunction.MODEL.encode(texts).tolist()
 
+data_root = "data"
+knowledge_base_dir = f"{data_root}/knowledge_base"
+
+object_key = 'Vulners-3000.xlsx'
+df = pd.read_excel(object_key)
 
 class ChromaWithUpsert:
     def __init__(
             self,
             name = "watsonx_rag_collection",
-            persist_directory='data/knowledge_base',
+            persist_directory=knowledge_base_dir,
             embedding_function=None,
             collection_metadata = None,
     ):
@@ -103,7 +109,19 @@ class ChromaWithUpsert:
         return self._collection.query(query_texts=query_texts, n_results=n_results)
 
 emb_func = MiniLML6V2EmbeddingFunction()
-chroma = ChromaWithUpsert(name=f"nq910_minilm6v2", embedding_function=emb_func,)
+chroma = ChromaWithUpsert(name=f"nq910_minilm6v211", embedding_function=emb_func,)
+
+
+def insert_data():
+
+    df['indextext'] = df['title'].astype(str) + "\n" + df['description']
+    if chroma.is_empty():
+        _ = chroma.upsert_texts(
+            texts=df.indextext.tolist(),
+            metadata=[{'title': title} for title in df.title], ids=None,)
+        chroma.persist()
+
+#insert_data()
 
 def make_prompt(context, question_text):
     return (f"Please answer the following.\n"
@@ -116,6 +134,7 @@ def make_prompts(relevant_contexts, question_texts):
         context = "\n\n\n".join(relevant_context["documents"][0])
         prompt_text = make_prompt(context, question_text)
         prompt_texts.append(prompt_text)
+    print(prompt_texts)
     return prompt_texts
 
 
@@ -129,6 +148,7 @@ def create_model():
 
 
 def get_relevant_embeddings(question_texts):
+    print(question_texts)
     relevant_contexts = []
     for question_text in question_texts:
         relevant_chunks = chroma.query(
@@ -155,13 +175,16 @@ def get_answers(question_texts):
 class Query(BaseModel):
     query: str = Field(...)
 
+class QueryResponse(BaseModel):
+    response: list[str] = Field(...)
 
-@app.post("/chat/")
+
+@app.post("/chat/", response_model=QueryResponse)
 def query_bot(query: Query = Body(...)) -> dict:
-    req = query.dict()['query']
-    resp = get_answers([req])
+    req = [query.dict()['query']]
+    resp = get_answers(req)
     return {'response': resp}
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=80)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
