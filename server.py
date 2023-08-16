@@ -13,11 +13,11 @@ import json, uvicorn
 import pandas as pd
 
 model_id = ModelTypes.FLAN_UL2
-api_key = 'V_cAKE4oOEUjejf352EZCsNJa-rF_FGDcfVzTYEwtzFg'
-project_id = '71abf865-d056-419f-b21b-1903d677cdae'
+api_key = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+project_id = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 model_credentials = {
     "url": "https://us-south.ml.cloud.ibm.com",
-    "apikey": 'ZFRVJAjxWLVPux5bq4ylcpyaH-hMJtNgSNuGMV8QmUkl'
+    "apikey": 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 }
 
 app = FastAPI()
